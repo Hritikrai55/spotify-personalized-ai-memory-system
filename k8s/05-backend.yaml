@@ -1,0 +1,67 @@
+# Build and push your backend image first, e.g.:
+#   docker build -t your-registry/spotify-memory-api:latest -f Dockerfile.api .
+#   docker push your-registry/spotify-memory-api:latest
+# then set that image below.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-api
+  namespace: spotify-memory
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: memory-api }
+  template:
+    metadata:
+      labels: { app: memory-api }
+    spec:
+      containers:
+        - name: memory-api
+          image: your-registry/spotify-memory-api:latest
+          ports: [{ containerPort: 8000 }]
+          envFrom:
+            - configMapRef: { name: memory-config }
+            - secretRef: { name: memory-secrets }
+          readinessProbe:
+            httpGet: { path: /v1/health, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1Gi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memory-api-service
+  namespace: spotify-memory
+spec:
+  selector: { app: memory-api }
+  ports: [{ port: 8000, targetPort: 8000 }]
+  type: ClusterIP
+---
+# Background worker: consumes Kafka events, writes memory to Neo4j + Qdrant.
+# Same image as the API; different entrypoint (python -m src.worker).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-worker
+  namespace: spotify-memory
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: memory-worker }
+  template:
+    metadata:
+      labels: { app: memory-worker }
+    spec:
+      containers:
+        - name: memory-worker
+          image: your-registry/spotify-memory-api:latest
+          command: ["python", "-m", "src.worker"]
+          envFrom:
+            - configMapRef: { name: memory-config }
+            - secretRef: { name: memory-secrets }
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits: { cpu: "1", memory: "1Gi" }

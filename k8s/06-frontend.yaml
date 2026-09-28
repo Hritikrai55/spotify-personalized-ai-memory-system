@@ -1,0 +1,36 @@
+# Build and push the frontend image first, e.g.:
+#   docker build -t your-registry/spotify-memory-frontend:latest ./frontend
+#   docker push your-registry/spotify-memory-frontend:latest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-frontend
+  namespace: spotify-memory
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: memory-frontend }
+  template:
+    metadata:
+      labels: { app: memory-frontend }
+    spec:
+      containers:
+        - name: memory-frontend
+          image: your-registry/spotify-memory-frontend:latest
+          ports: [{ containerPort: 3000 }]
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "http://memory-api-service:8000"
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memory-frontend-service
+  namespace: spotify-memory
+spec:
+  selector: { app: memory-frontend }
+  ports: [{ port: 3000, targetPort: 3000 }]
+  type: LoadBalancer

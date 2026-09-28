@@ -11,6 +11,7 @@ to synchronous processing so the system still works end to end.
 import logging
 import os
 import re
+import time
 from typing import TypedDict, Optional
 
 from dotenv import load_dotenv
@@ -204,6 +205,7 @@ def build_agent(graph: GraphStore, vectors: VectorStore):
         return state
 
     def retrieve_node(state: AgentState) -> AgentState:
+        t0 = time.perf_counter()
 
         retrieved = retrieve(
             state["subject_id"],
@@ -211,6 +213,8 @@ def build_agent(graph: GraphStore, vectors: VectorStore):
             graph,
             vectors,
         )
+
+        print(f"TIMING retrieve={time.perf_counter() - t0:.2f}s", flush=True)
 
         pkg = compose_context(
             state["subject_id"],
@@ -224,6 +228,7 @@ def build_agent(graph: GraphStore, vectors: VectorStore):
 
     def generate_node(state: AgentState) -> AgentState:
 
+        t0 = time.perf_counter()
         llm = get_llm(temperature=0.4)
 
         memory_block = render_prompt_block(
@@ -294,7 +299,7 @@ def build_agent(graph: GraphStore, vectors: VectorStore):
             "artist pairing, avoid inventing details and give a safer "
             "artist-level recommendation. "
 
-            "Use simple bullet lists instead of Markdown tables. "
+            "Stay within the Spotify listening-assistant scope. Answer questions about music, songs, artists, albums, playlists, podcasts, listening preferences, recommendations, and the user memory relevant to those topics. " "If the user asks an unrelated general question such as programming, coding, mathematics, or other non-music topics, do not answer it as a general-purpose assistant; briefly explain that you are focused on Spotify listening and memory, then redirect the user to a relevant music or listening question. " "When the user asks what they like, prefer, dislike, or previously told you about music, use the retrieved memory block and do not invent preferences. " "Use simple bullet lists instead of Markdown tables. "
 
             "Keep responses concise, natural, and useful."
         )
@@ -329,6 +334,7 @@ def build_agent(graph: GraphStore, vectors: VectorStore):
         )
 
         result = llm.invoke(messages)
+        print(f"TIMING llm={time.perf_counter() - t0:.2f}s", flush=True)
 
         state["response"] = sanitize_response(
             result.content

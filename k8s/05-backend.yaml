@@ -1,6 +1,6 @@
 # Build and push your backend image first, e.g.:
-#   docker build -t your-registry/spotify-memory-api:latest -f Dockerfile.api .
-#   docker push your-registry/spotify-memory-api:latest
+#   docker build -t spotify-memory-api:latest -f Dockerfile.api .
+#   docker push spotify-memory-api:latest
 # then set that image below.
 apiVersion: apps/v1
 kind: Deployment
@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
         - name: memory-api
-          image: your-registry/spotify-memory-api:latest
+          image: spotify-memory-api:latest
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 8000 }]
           envFrom:
             - configMapRef: { name: memory-config }
@@ -57,7 +58,8 @@ spec:
     spec:
       containers:
         - name: memory-worker
-          image: your-registry/spotify-memory-api:latest
+          image: spotify-memory-api:latest
+          imagePullPolicy: IfNotPresent
           command: ["python", "-m", "src.worker"]
           envFrom:
             - configMapRef: { name: memory-config }

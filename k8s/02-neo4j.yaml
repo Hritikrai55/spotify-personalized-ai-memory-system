@@ -12,15 +12,24 @@ spec:
     metadata:
       labels: { app: neo4j }
     spec:
+      enableServiceLinks: false
       containers:
         - name: neo4j
-          image: neo4j:5.26-community
+          image: neo4j:5.24-community
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 7687
             - containerPort: 7474
           env:
             - name: NEO4J_AUTH
-              value: "neo4j/password123"
+              valueFrom:
+                secretKeyRef:
+                  name: memory-secrets
+                  key: NEO4J_AUTH
+            - name: NEO4J_server_memory_heap_initial__size
+              value: "256m"
+            - name: NEO4J_server_memory_heap_max__size
+              value: "512m"
           volumeMounts:
             - name: neo4j-data
               mountPath: /data

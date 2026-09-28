@@ -1,6 +1,6 @@
 # Build and push the frontend image first, e.g.:
-#   docker build -t your-registry/spotify-memory-frontend:latest ./frontend
-#   docker push your-registry/spotify-memory-frontend:latest
+#   docker build -t spotify-personalized-ai-memory-system-web:latest ./frontend
+#   docker push spotify-personalized-ai-memory-system-web:latest
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: memory-frontend
-          image: your-registry/spotify-memory-frontend:latest
+          image: spotify-personalized-ai-memory-system-web:latest
           ports: [{ containerPort: 3000 }]
           env:
             - name: NEXT_PUBLIC_API_URL

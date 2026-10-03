@@ -1,4 +1,6 @@
 # Spotify Personalized AI Memory System — MVP
+<img width="6016" height="4016" alt="thibault-penin-SwKf1x2_hRo-unsplash" src="https://github.com/user-attachments/assets/9c5eb10d-a687-4632-8c70-0d6925b7380f" />
+
 
 A working scaffold of the governed AI memory system described in the product
 spec: event capture → memory extraction (LLM) → temporal graph write (Neo4j)
